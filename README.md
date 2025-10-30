@@ -9,7 +9,7 @@
 
 ## 👥 Dupla
 - **Luã Coimbra Santiago Saunders** — @saunderz  
-- **Melissa Palhano** — @melissapalhano  
+- **Melissa Rodrigues Palhano** — @melissapalhano  
 
 ---
 
