@@ -1,39 +1,44 @@
-# Lox — Análise Léxica (jlox)
+# P2 — Compiladores: Análise Léxica (jlox)
 
-**Status:** etapa 1 do projeto — até _4.4 · The Scanner Class_ (Crafting Interpreters)  
-
-> Implementação em **Java (sem Maven)** do analisador léxico da linguagem **Lox**, com REPL simples e execução por arquivo. 
-> Foco: tokens básicos, literais, palavras‑chave, operadores de 1–2 caracteres, comentários (// e /* */) e relatório de erros.
+**Disciplina:** Compiladores  
+**Etapa:** 4.4 — *The Scanner Class*  
+**Linguagem:** Java
+**Base:** Livro *Crafting Interpreters* — Capítulo 4 (*Scanning*)  
 
 ---
 
 ## 👥 Dupla
-- Nome 1 — Luã Coimbra Santiago Saunders @saunderz  
-- Nome 2 — Melissa Rodrigues Palhano @melissapalhano  
+- **Luã Coimbra Santiago Saunders** — @saunderz  
+- **Melissa Palhano** — @melissapalhano  
 
 ---
 
-## 📁 Estrutura do projeto
+## 🧠 Descrição
+Implementação inicial do **interpretador jlox** até a seção **4.4 – The Scanner Class** do livro *Crafting Interpreters*.  
+O projeto estabelece a base do analisador léxico, contendo as estruturas fundamentais para a análise de tokens e o framework principal do interpretador.
+
+---
+
+## 📁 Estrutura do Projeto
 ```
-lox-lexer/
-├─ README.md
+P2-Compiladores-Analise-Lexica/
+├─ src/
+│  └─ main/
+│     └─ java/
+│        └─ lox/
+│           ├─ Lox.java
+│           ├─ Scanner.java
+│           ├─ Token.java
+│           └─ TokenType.java
 ├─ .gitignore
-├─ examples/
-│  └─ hello.lox
-└─ src/
-   └─ main/
-      └─ java/
-         └─ lox/
-            ├─ Lox.java
-            ├─ Scanner.java
-            ├─ Token.java
-            └─ TokenType.java
+├─ LICENSE
+└─ README.md
 ```
 
 ---
 
-## 🧰 Requisitos
-- **Java JDK 17+** no PATH  
+## ⚙️ Requisitos
+- **Java JDK 17+** instalado e configurado no PATH  
   Verifique:
   ```bash
   java -version
@@ -42,11 +47,31 @@ lox-lexer/
 
 ---
 
-## 🔗 Referências
-- **Crafting Interpreters — Chapter 4: Scanning**: https://craftinginterpreters.com/scanning.html  
-- Repositórios educacionais similares (para estudo).
+## 🚀 Como Compilar e Executar
+
+### Compilação
+No diretório raiz do projeto:
+```bash
+javac -d out src/main/java/lox/*.java
+```
+
+### Execução (modo REPL)
+```bash
+java -cp out lox.Lox
+```
+> O prompt `>` aparecerá para digitação interativa.
+
+### Execução (arquivo)
+```bash
+java -cp out lox.Lox examples/hello.lox
+```
+---
+
+## 🧾 Licença
+Projeto licenciado sob a [MIT License](LICENSE).
 
 ---
 
-## 📄 Licença
-[MIT](https://choosealicense.com/licenses/mit/).  
+## 🏁 Conclusão
+Entrega referente à primeira etapa prática do projeto de Compiladores, implementando o **analisador léxico (Scanner)** até o ponto definido no livro.  
+> “Toda linguagem começa com um bom scanner.” — *Crafting Interpreters*
