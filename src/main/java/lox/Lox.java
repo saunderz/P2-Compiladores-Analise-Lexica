@@ -1,64 +1,59 @@
-package com.craftinginterpreters.lox;
+package lox;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
-public class Lox {
-  public static void main(String[] args) throws IOException {
-    if (args.length > 1) {
-      System.out.println("Usage: jlox [script]");
-      System.exit(64); 
-    } else if (args.length == 1) {
-      runFile(args[0]);
-    } else {
-      runPrompt();
+import static lox.TokenType.*;
+
+class Scanner {
+  private final String source;
+  private final List<Token> tokens = new ArrayList<>();
+  private int start = 0;
+  private int current = 0;
+  private int line = 1;
+
+  Scanner(String source) { this.source = source; }
+
+  List<Token> scanTokens() {
+    while (!isAtEnd()) {
+      start = current;
+      scanToken();
+    }
+    tokens.add(new Token(EOF, "", null, line));
+    return tokens;
+  }
+
+  private void scanToken() {
+    char c = advance();
+    switch (c) {
+      case '(' -> addToken(LEFT_PAREN);
+      case ')' -> addToken(RIGHT_PAREN);
+      case '{' -> addToken(LEFT_BRACE);
+      case '}' -> addToken(RIGHT_BRACE);
+      case ',' -> addToken(COMMA);
+      case '.' -> addToken(DOT);
+      case '-' -> addToken(MINUS);
+      case '+' -> addToken(PLUS);
+      case ';' -> addToken(SEMICOLON);
+      case '*' -> addToken(STAR);
+      case '!' -> addToken(match('=') ? BANG_EQUAL : BANG);
+      case '=' -> addToken(match('=') ? EQUAL_EQUAL : EQUAL);
+      case '<' -> addToken(match('=') ? LESS_EQUAL : LESS);
+      case '>' -> addToken(match('=') ? GREATER_EQUAL : GREATER);
+      default -> Lox.error(line, "Unexpected character.");
     }
   }
 
-  private static void runFile(String path) throws IOException {
-    byte[] bytes = Files.readAllBytes(Paths.get(path));
-    run(new String(bytes, Charset.defaultCharset()));
-    
-    if (hadError) System.exit(65);
+  private boolean isAtEnd() { return current >= source.length(); }
+  private char advance() { return source.charAt(current++); }
+  private boolean match(char expected) {
+    if (isAtEnd()) return false;
+    if (source.charAt(current) != expected) return false;
+    current++; return true;
   }
-
-  private static void runPrompt() throws IOException {
-    InputStreamReader input = new InputStreamReader(System.in);
-    BufferedReader reader = new BufferedReader(input);
-
-    for (;;) { 
-      System.out.print("> ");
-      String line = reader.readLine();
-      if (line == null) break;
-      run(line);
-      hadError = false;
-    }
+  private void addToken(TokenType type) { addToken(type, null); }
+  private void addToken(TokenType type, Object literal) {
+    String text = source.substring(start, current);
+    tokens.add(new Token(type, text, literal, line));
   }
-
-  private static void run(String source) {
-    Scanner scanner = new Scanner(source);
-    List<Token> tokens = scanner.scanTokens();
-
-    for (Token token : tokens) {
-      System.out.println(token);
-    }
-  }
-
-  static void error(int line, String message) {
-    report(line, "", message);
-  }
-
-  private static void report(int line, String where,
-                             String message) {
-    System.err.println(
-        "[line " + line + "] Error" + where + ": " + message);
-    hadError = true;
-  }
-
-  static boolean hadError = false;
 }
