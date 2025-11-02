@@ -18,7 +18,7 @@ class Scanner {
 
   List<Token> scanTokens() {
     while (!isAtEnd()) {
-      start = current;     // início do próximo lexema
+      start = current; // início do próximo lexema
       scanToken();
     }
     tokens.add(new Token(EOF, "", null, line));
@@ -46,12 +46,60 @@ class Scanner {
       case '<' -> addToken(match('=') ? LESS_EQUAL : LESS);
       case '>' -> addToken(match('=') ? GREATER_EQUAL : GREATER);
 
-      // NADA de '/' e NADA de espaços/linhas ainda (vem na 4.6)
-      default -> Lox.error(line, "Unexpected character.");
+      // divisão e comentários de linha
+      case '/' -> {
+        if (match('/')) {
+          while (peek() != '\n' && !isAtEnd()) advance(); // ignora até o fim da linha
+        } else {
+          addToken(SLASH);
+        }
+      }
+
+      // ignorar whitespace
+      case ' ', '\r', '\t' -> { /* ignore */ }
+      case '\n' -> line++;
+
+      // strings
+      case '"' -> string();
+
+      default -> {
+        if (isDigit(c)) {
+          number();
+        } else {
+          Lox.error(line, "Unexpected character.");
+        }
+      }
     }
   }
 
-  // ---- helpers (4.5) ----
+  // ----- handlers -----
+
+  private void string() {
+    while (peek() != '"' && !isAtEnd()) {
+      if (peek() == '\n') line++;
+      advance();
+    }
+    if (isAtEnd()) {
+      Lox.error(line, "Unterminated string.");
+      return;
+    }
+    advance(); // fecha aspas
+    String value = source.substring(start + 1, current - 1);
+    addToken(STRING, value);
+  }
+
+  private void number() {
+    while (isDigit(peek())) advance();
+    if (peek() == '.' && isDigit(peekNext())) {
+      advance(); // consome '.'
+      while (isDigit(peek())) advance();
+    }
+    String lex = source.substring(start, current);
+    addToken(NUMBER, Double.parseDouble(lex));
+  }
+
+  // ----- helpers -----
+
   private boolean isAtEnd() { return current >= source.length(); }
 
   private char advance() { return source.charAt(current++); }
@@ -62,6 +110,18 @@ class Scanner {
     current++;
     return true;
   }
+
+  private char peek() {
+    if (isAtEnd()) return '\0';
+    return source.charAt(current);
+  }
+
+  private char peekNext() {
+    if (current + 1 >= source.length()) return '\0';
+    return source.charAt(current + 1);
+  }
+
+  private boolean isDigit(char c) { return c >= '0' && c <= '9'; }
 
   private void addToken(TokenType type) { addToken(type, null); }
 
