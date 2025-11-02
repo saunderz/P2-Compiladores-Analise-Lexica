@@ -1,39 +1,49 @@
-# Lox — Análise Léxica (jlox)
+# P2 — Compiladores: Análise Léxica (jlox)
 
-**Status:** etapa 1 do projeto — até _4.4 · The Scanner Class_ (Crafting Interpreters)  
+Disciplina: **Compiladores**  
+Linguagem: **Java**  
+Base: Livro **Crafting Interpreters** — Capítulo 4 (*Scanning*)
 
-> Implementação em **Java (sem Maven)** do analisador léxico da linguagem **Lox**, com REPL simples e execução por arquivo. 
-> Foco: tokens básicos, literais, palavras‑chave, operadores de 1–2 caracteres, comentários (// e /* */) e relatório de erros.
+> **Status da entrega**: concluído até **4.7 — Reserved Words and Identifiers** (inclui 4.5 e 4.6).
 
 ---
 
 ## 👥 Dupla
-- Nome 1 — Luã Coimbra Santiago Saunders @saunderz  
-- Nome 2 — Melissa Rodrigues Palhano @melissapalhano  
+- **Luã Coimbra Santiago Saunders** — [@saunderz](https://github.com/saunderz)  
+- **Melissa Rodrigues Palhano** — [@melissapalhano](https://github.com/melissapalhano)
+
+---
+
+## 🧠 Escopo implementado (Cap. 4)
+- **4.4 — The Scanner Class**: esqueleto do `Scanner` e laço de varredura (`scanTokens()`), emissão de `EOF`.
+- **4.5 — Recognizing Lexemes**: tokens de **1 caractere** `(){}.,-+;*` e operadores **1–2 chars** `! !=, = ==, < <=, > >=`, com **tratativa de erro léxico** para demais caracteres.
+- **4.6 — Longer Lexemes**: suporte a **comentários de linha** `//`, **ignorar whitespace** (`' '`, `\r`, `\t`, `\n`), **strings** entre aspas duplas e **números** (inteiros e fracionários).
+- **4.7 — Reserved Words and Identifiers**: **identificadores** (letras/underscore seguidos de letras/dígitos/underscore) e **palavras‑reservadas** mapeadas para `TokenType` específico (`and, class, else, false, for, fun, if, nil, or, print, return, super, this, true, var, while`).
+
+> **Observação:** esta etapa é apenas o **analisador léxico** (scanner). Parser/avaliador virão em capítulos seguintes do livro.
 
 ---
 
 ## 📁 Estrutura do projeto
 ```
-lox-lexer/
-├─ README.md
+P2-Compiladores-Analise-Lexica/
+├─ src/
+│  └─ main/
+│     └─ java/
+│        └─ lox/
+│           ├─ Lox.java
+│           ├─ Scanner.java
+│           ├─ Token.java
+│           └─ TokenType.java
 ├─ .gitignore
-├─ examples/
-│  └─ hello.lox
-└─ src/
-   └─ main/
-      └─ java/
-         └─ lox/
-            ├─ Lox.java
-            ├─ Scanner.java
-            ├─ Token.java
-            └─ TokenType.java
+├─ LICENSE
+└─ README.md
 ```
 
 ---
 
-## 🧰 Requisitos
-- **Java JDK 17+** no PATH  
+## ⚙️ Requisitos
+- **Java JDK 17+** (ou compatível) instalado e no `PATH`  
   Verifique:
   ```bash
   java -version
@@ -42,11 +52,75 @@ lox-lexer/
 
 ---
 
-## 🔗 Referências
-- **Crafting Interpreters — Chapter 4: Scanning**: https://craftinginterpreters.com/scanning.html  
-- Repositórios educacionais similares (para estudo).
+## ▶️ Como compilar e executar
+
+### Opção A — Windows PowerShell (sem usar wildcard `*.java`)
+> O PowerShell não expande `*.java` para executáveis externos. Use um *response file* ou liste os arquivos.
+
+**Usando response file (recomendado):**
+```powershell
+# na raiz do projeto
+$files = Get-ChildItem -Path src\main\java\lox -Filter *.java | ForEach-Object FullName
+$files | Set-Content sources.txt
+mkdir out -Force
+javac -d out @sources.txt
+java -cp out lox.Lox
+```
+
+**Ou listando explicitamente:**
+```powershell
+mkdir out -Force
+javac -d out src\main\java\lox\Lox.java src\main\java\lox\Scanner.java src\main\java\lox\Token.java src\main\java\lox\TokenType.java
+java -cp out lox.Lox
+```
+
+### Opção B — Bash (Linux/macOS)
+```bash
+mkdir -p out
+javac -d out src/main/java/lox/*.java
+java -cp out lox.Lox
+```
 
 ---
 
-## 📄 Licença
-[MIT](https://choosealicense.com/licenses/mit/).  
+## 🧪 Testes rápidos no REPL
+
+**4.5 — operadores/tokens básicos (sem espaços necessários a partir de 4.6):**
+```
+(){}.,-+;**!=====<===>=
+```
+**4.6 — comentários, strings e números:**
+```
+// grouping
+(( )){} // comment
+"lox" 123 45.67
+!= == <= >= /
+```
+**4.7 — identificadores e palavras‑reservadas:**
+```
+var language = "Lox";
+print language;
+if (true) print "ok";
+while (false) print 0;
+orchid or
+```
+
+---
+
+## 🌿 Fluxo de branches
+- Desenvolvimento ocorre na **branch `develop`** (4.5 → 4.6 → 4.7).  
+- **Merge para `main`** somente ao final (após concluir 4.7).
+
+Sugerido (GitHub):
+1. Abra um **Pull Request**: base = `main`, compare = `develop`  
+2. _Create pull request_ → _Merge pull request_
+
+---
+
+## 🪪 Licença
+Este projeto é licenciado sob a **MIT License**. Consulte o arquivo [`LICENSE`](LICENSE).
+
+---
+
+## 📚 Referência
+- Robert Nystrom — **Crafting Interpreters**, Capítulo 4: *Scanning*.
