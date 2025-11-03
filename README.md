@@ -20,7 +20,7 @@ Base: Livro **Crafting Interpreters** — Capítulo 4 (*Scanning*)
 - **4.6 — Longer Lexemes**: suporte a **comentários de linha** `//`, **ignorar whitespace** (`' '`, `\r`, `\t`, `\n`), **strings** entre aspas duplas e **números** (inteiros e fracionários).
 - **4.7 — Reserved Words and Identifiers**: **identificadores** (letras/underscore seguidos de letras/dígitos/underscore) e **palavras‑reservadas** mapeadas para `TokenType` específico (`and, class, else, false, for, fun, if, nil, or, print, return, super, this, true, var, while`).
 
-> **Observação:** esta etapa é apenas o **analisador léxico** (scanner). Parser/avaliador virão em capítulos seguintes do livro.
+> **Observação:** esta etapa é apenas o **analisador léxico** (scanner). 
 
 ---
 
@@ -104,16 +104,6 @@ if (true) print "ok";
 while (false) print 0;
 orchid or
 ```
-
----
-
-## 🌿 Fluxo de branches
-- Desenvolvimento ocorre na **branch `develop`** (4.5 → 4.6 → 4.7).  
-- **Merge para `main`** somente ao final (após concluir 4.7).
-
-Sugerido (GitHub):
-1. Abra um **Pull Request**: base = `main`, compare = `develop`  
-2. _Create pull request_ → _Merge pull request_
 
 ---
 
