@@ -1,10 +1,10 @@
 # P2 — Compiladores: Análise Léxica (jlox)
 
-Disciplina: **Compiladores**  
+Disciplina: **Compiladores - EECP0026**  
 Linguagem: **Java**  
-Base: Livro **Crafting Interpreters** — Capítulo 4 (*Scanning*)
+Base: Livro **Crafting Interpreters**
 
-> **Status da entrega**: concluído até **4.7 — Reserved Words and Identifiers** (inclui 4.5 e 4.6).
+> **Status da entrega**: concluído até **5.4 — A (Not Very) Pretty Printer** 
 
 ---
 
@@ -14,13 +14,22 @@ Base: Livro **Crafting Interpreters** — Capítulo 4 (*Scanning*)
 
 ---
 
-## 🧠 Escopo implementado (Cap. 4)
+## 🧠 Escopo implementado
+
+### Capítulo 4 — Scanning
 - **4.4 — The Scanner Class**: esqueleto do `Scanner` e laço de varredura (`scanTokens()`), emissão de `EOF`.
 - **4.5 — Recognizing Lexemes**: tokens de **1 caractere** `(){}.,-+;*` e operadores **1–2 chars** `! !=, = ==, < <=, > >=`, com **tratativa de erro léxico** para demais caracteres.
 - **4.6 — Longer Lexemes**: suporte a **comentários de linha** `//`, **ignorar whitespace** (`' '`, `\r`, `\t`, `\n`), **strings** entre aspas duplas e **números** (inteiros e fracionários).
 - **4.7 — Reserved Words and Identifiers**: **identificadores** (letras/underscore seguidos de letras/dígitos/underscore) e **palavras‑reservadas** mapeadas para `TokenType` específico (`and, class, else, false, for, fun, if, nil, or, print, return, super, this, true, var, while`).
 
 > **Observação:** esta etapa é apenas o **analisador léxico** (scanner). 
+
+### Capítulo 5 — Representing Code
+- **5.1 — Context-Free Grammars**: teoria de gramáticas livres de contexto, notação BNF e gramática para expressões Lox.
+- **5.2 — Implementing Syntax Trees**: implementação de **Abstract Syntax Tree (AST)** com classes `Expr`, `Binary`, `Grouping`, `Literal` e `Unary`.
+- **5.2.2 — Metaprogramming the trees**: ferramenta `GenerateAst.java` para gerar automaticamente as classes da AST.
+- **5.3 — Working with Trees**: implementação do **padrão Visitor** para operações sobre a árvore sintática.
+- **5.4 — A (Not Very) Pretty Printer**: implementação de `AstPrinter` para visualização da estrutura da AST em formato Lisp-like.
 
 ---
 
@@ -34,7 +43,11 @@ P2-Compiladores-Analise-Lexica/
 │           ├─ Lox.java
 │           ├─ Scanner.java
 │           ├─ Token.java
-│           └─ TokenType.java
+│           ├─ TokenType.java
+│           ├─ Expr.java          
+│           ├─ AstPrinter.java
+│           └─ tool/
+│              └─ GenerateAst.java
 ├─ .gitignore
 ├─ LICENSE
 └─ README.md
@@ -113,4 +126,6 @@ Este projeto é licenciado sob a **MIT License**. Consulte o arquivo [`LICENSE`]
 ---
 
 ## 📚 Referência
-- Robert Nystrom — **Crafting Interpreters**, Capítulo 4: *Scanning*.
+- Robert Nystrom — **Crafting Interpreters**.
+  - Capítulo 4: *Scanning*
+  - Capítulo 5: *Representing Code*
