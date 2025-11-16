@@ -97,7 +97,7 @@ brew install openjdk@21 maven
 
 ---
 
-## ▶️ Compilação e Execuçap
+## ▶️ Compilação e Execução
 
 
 Na raiz do projeto, execute:
