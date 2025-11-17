@@ -37,17 +37,22 @@ Base: Livro **Crafting Interpreters**
 ```
 P2-Compiladores-Analise-Lexica/
 ├─ src/
-│  └─ main/
-│     └─ java/
-│        └─ lox/
-│           ├─ Lox.java
-│           ├─ Scanner.java
-│           ├─ Token.java
-│           ├─ TokenType.java
-│           ├─ Expr.java          
-│           ├─ AstPrinter.java
-│           └─ tool/
-│              └─ GenerateAst.java
+│  ├─ main/
+│  │  ├─ java/
+│  │  │  └─ lox/
+│  │  │     ├─ Lox.java
+│  │  │     ├─ Scanner.java
+│  │  │     ├─ Token.java
+│  │  │     ├─ TokenType.java
+│  │  │     ├─ Expr.java          
+│  │  │     ├─ AstPrinter.java
+│  │  │     └─ tool/
+│  │  │        └─ GenerateAst.java
+│  │  └─ resources/
+│  └─ test/
+│     ├─ java/
+│     └─ resources/
+├─ pom.xml
 ├─ .gitignore
 ├─ LICENSE
 └─ README.md
@@ -55,43 +60,69 @@ P2-Compiladores-Analise-Lexica/
 
 ---
 
-## ⚙️ Requisitos
+## ⚙️ Pré-requisitos
+
+Antes de compilar e executar o projeto, certifique-se de ter instalado:
+
 - **Java JDK 17+** (ou compatível) instalado e no `PATH`  
-  Verifique:
+  O projeto foi testado com **Java 21**. Verifique:
   ```bash
   java -version
   javac -version
   ```
 
+- **Apache Maven 3.6+** instalado e no `PATH`  
+  Verifique:
+  ```bash
+  mvn -version
+  ```
+
+### Instalação (se necessário)
+
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt update
+sudo apt install -y openjdk-21-jdk maven
+```
+
+**macOS (Homebrew):**
+```bash
+brew install openjdk@21 maven
+```
+
+**Windows:**
+- Baixe o JDK de [Oracle](https://www.oracle.com/java/technologies/downloads/) ou [OpenJDK](https://adoptium.net/)
+- Baixe o Maven de [Apache Maven](https://maven.apache.org/download.cgi)
+- Configure as variáveis de ambiente `JAVA_HOME` e `MAVEN_HOME`
+
 ---
 
-## ▶️ Como compilar e executar
+## ▶️ Compilação e Execução
 
-### Opção A — Windows PowerShell (sem usar wildcard `*.java`)
-> O PowerShell não expande `*.java` para executáveis externos. Use um *response file* ou liste os arquivos.
 
-**Usando response file (recomendado):**
-```powershell
-# na raiz do projeto
-$files = Get-ChildItem -Path src\main\java\lox -Filter *.java | ForEach-Object FullName
-$files | Set-Content sources.txt
-mkdir out -Force
-javac -d out @sources.txt
-java -cp out lox.Lox
-```
+Na raiz do projeto, execute:
 
-**Ou listando explicitamente:**
-```powershell
-mkdir out -Force
-javac -d out src\main\java\lox\Lox.java src\main\java\lox\Scanner.java src\main\java\lox\Token.java src\main\java\lox\TokenType.java
-java -cp out lox.Lox
-```
-
-### Opção B — Bash (Linux/macOS)
 ```bash
-mkdir -p out
-javac -d out src/main/java/lox/*.java
-java -cp out lox.Lox
+mvn clean package
+```
+
+```bash
+mvn clean install
+```
+
+#### Opção 1 — Executar via Maven (REPL interativo)
+```bash
+mvn exec:java -Dexec.mainClass="lox.Lox"
+```
+
+#### Opção 2 — Executar o JAR diretamente (REPL interativo)
+```bash
+java -cp target/p2-compiladores-analise-lexica-1.0-SNAPSHOT.jar lox.Lox
+```
+
+#### Opção 3 — Executar um arquivo Lox
+```bash
+java -cp target/p2-compiladores-analise-lexica-1.0-SNAPSHOT.jar lox.Lox arquivo.lox
 ```
 
 ---
