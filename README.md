@@ -115,7 +115,7 @@ Baseado em **“Parsing Expressions”** (Crafting Interpreters).
 
 ---
 
-### Capítulo 7 — Evaluating Expressions (Interpretador de Expressões)
+### Em breve: Capítulo 7 — Evaluating Expressions (Interpretador de Expressões)
 
 Baseado em **“Evaluating Expressions”** (Crafting Interpreters).
 
