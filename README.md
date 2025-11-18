@@ -4,7 +4,7 @@ Disciplina: Compiladores - EECP0026
 Linguagem: Java  
 Base: Livro **Crafting Interpreters** (Robert Nystrom)
 
-> **Status da entrega:** concluído até _Parsing Expressions_ e _Evaluating Expressions_  
+> **Status da entrega:** concluído até _Parsing Expressions_
 > (expressões apenas – ainda sem declarações/estatements)
 
 ---
