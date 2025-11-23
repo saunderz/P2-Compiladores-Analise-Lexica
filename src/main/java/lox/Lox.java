@@ -9,10 +9,16 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Lox {
+
+  static boolean hadError = false;
+  static boolean hadRuntimeError = false; // NOVO
+
+  private static final Interpreter interpreter = new Interpreter(); // NOVO
+
   public static void main(String[] args) throws IOException {
     if (args.length > 1) {
       System.out.println("Usage: jlox [script]");
-      System.exit(64); 
+      System.exit(64);
     } else if (args.length == 1) {
       runFile(args[0]);
     } else {
@@ -23,20 +29,22 @@ public class Lox {
   private static void runFile(String path) throws IOException {
     byte[] bytes = Files.readAllBytes(Paths.get(path));
     run(new String(bytes, Charset.defaultCharset()));
-    
+
     if (hadError) System.exit(65);
+    if (hadRuntimeError) System.exit(70); // NOVO
   }
 
   private static void runPrompt() throws IOException {
     InputStreamReader input = new InputStreamReader(System.in);
     BufferedReader reader = new BufferedReader(input);
 
-    for (;;) { 
+    for (;;) {
       System.out.print("> ");
       String line = reader.readLine();
       if (line == null) break;
       run(line);
       hadError = false;
+      hadRuntimeError = false; // opcional: limpa também erro de runtime a cada linha
     }
   }
 
@@ -48,7 +56,11 @@ public class Lox {
 
     if (hadError) return;
 
-    System.out.println(new AstPrinter().print(expression));
+    // Antes: só imprimia a AST
+    // System.out.println(new AstPrinter().print(expression));
+
+    // Agora: avalia a expressão de fato
+    interpreter.interpret(expression);
   }
 
   static void error(int line, String message) {
@@ -63,12 +75,16 @@ public class Lox {
     }
   }
 
-  private static void report(int line, String where,
-                             String message) {
+  private static void report(int line, String where, String message) {
     System.err.println(
         "[line " + line + "] Error" + where + ": " + message);
     hadError = true;
   }
 
-  static boolean hadError = false;
+  // NOVO: erro em tempo de execução (avaliando a AST)
+  static void runtimeError(RuntimeError error) {
+    System.err.println(error.getMessage() +
+        "\n[line " + error.token.line + "]");
+    hadRuntimeError = true;
+  }
 }
