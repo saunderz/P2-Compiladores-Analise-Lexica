@@ -4,7 +4,7 @@ Disciplina: Compiladores - EECP0026
 Linguagem: Java  
 Base: Livro **Crafting Interpreters** (Robert Nystrom)
 
-> **Status da entrega:** concluído até _Parsing Expressions_
+> **Status da entrega:** concluído até _Parsing Expressions_ e _Evaluating Expressions_  
 > (expressões apenas – ainda sem declarações/estatements)
 
 ---
@@ -115,7 +115,7 @@ Baseado em **“Parsing Expressions”** (Crafting Interpreters).
 
 ---
 
-### Em breve: Capítulo 7 — Evaluating Expressions (Interpretador de Expressões)
+### Capítulo 7 — Evaluating Expressions (Interpretador de Expressões)
 
 Baseado em **“Evaluating Expressions”** (Crafting Interpreters).
 
@@ -160,7 +160,7 @@ Baseado em **“Evaluating Expressions”** (Crafting Interpreters).
     ```text
     fonte → Scanner → tokens → Parser → AST (Expr) → Interpreter → valor impresso
     ```
-  - O REPL e a execução de arquivos agora avaliam de fato as expressões, em vez de apenas imprimir a AST.
+  - O REPL e a execução de arquivos avaliam de fato as expressões, em vez de apenas imprimir a AST.
 
 ---
 
@@ -263,6 +263,13 @@ java -cp target/p2-compiladores-analise-lexica-1.0-SNAPSHOT.jar lox.Lox
 ```bash
 java -cp target/p2-compiladores-analise-lexica-1.0-SNAPSHOT.jar lox.Lox programa.lox
 ```
+
+> Alternativamente, sem Maven, é possível compilar com:
+>
+> ```bash
+> javac -d out src/main/java/lox/*.java
+> java -cp out lox.Lox
+> ```
 
 ---
 
