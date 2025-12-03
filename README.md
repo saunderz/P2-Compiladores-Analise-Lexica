@@ -1,344 +1,184 @@
-# P2 — Compiladores: Interpretador Lox (Scanner, AST, Parser e Expressões)
+# Lox — Análise Léxica, Expressões e Controle de Fluxo (jlox)
 
-Disciplina: Compiladores - EECP0026  
-Linguagem: Java  
-Base: Livro **Crafting Interpreters** (Robert Nystrom)
+Interpretador da linguagem **Lox** implementado em **Java**, seguindo o livro _Crafting Interpreters_ (Robert Nystrom).
 
-> **Status da entrega:** concluído até _Parsing Expressions_ e _Evaluating Expressions_  
-> (expressões apenas – ainda sem declarações/estatements)
+Este repositório reúne as entregas das unidades de **Compiladores**:
+
+- **Unidade 2**: Análise Léxica — capítulo 4 (_Scanning_), até a seção **4.7 – Reserved Words and Identifiers**.
+- **Unidade 3**: _Statements and State_ (capítulo 8) e _Control Flow_ (capítulo 9) — suporte a declarações, variáveis e fluxo de controle.
 
 ---
 
 ## 👥 Dupla
 
-- Luã Coimbra Santiago Saunders — [@saunderz](https://github.com/saunderz)
-- Melissa Rodrigues Palhano — [@melissapalhano](https://github.com/melissapalhano)
+- **Luã Coimbra Santiago Saunders** — [@saunderz](https://github.com/saunderz)
+- **Melissa Rodrigues Palhano** — [@melissapalhano](https://github.com/melissapalhano)
 
 ---
 
-## 📌 Escopo implementado
+## 📚 Escopo Implementado
 
-### Capítulo 4 — Scanning
+### Unidade 2 — Scanning (cap. 4)
 
-- **4.4 — The Scanner Class**  
-  - Implementação da classe `Scanner` com o laço principal `scanTokens()`, leitura do código fonte caractere a caractere e emissão do token `EOF`.
+- Implementação completa do **Scanner**:
+  - Tokens de 1 caractere: `(){}.,-+;/*`.
+  - Operadores compostos: `!=`, `==`, `<=`, `>=`.
+  - Literais: **número**, **string**, **booleanos** (`true`, `false`) e `nil`.
+  - Identificadores e **palavras reservadas** (keywords).
+  - Ignora comentários `//` e espaços em branco.
+  - Tratamento de **erros léxicos** (caractere inesperado, string não terminada).
 
-- **4.5 — Recognizing Lexemes**  
-  - Reconhecimento de tokens de **1 caractere**: `(` `)` `{` `}` `,` `.` `-` `+` `;` `*`.  
-  - Reconhecimento de operadores de **1–2 caracteres**:  
-    - `!` `!=`, `=` `==`, `<` `<=`, `>` `>=`.  
-  - Tratamento de erro léxico para caracteres inesperados, com reporte de linha.
+Arquivos principais:
 
-- **4.6 — Longer Lexemes**  
-  - Suporte a:
-    - Comentários de linha `//` até o fim da linha;
-    - Ignorar espaços em branco (`' '`, `\r`, `\t`, `\n`);
-    - Strings entre aspas duplas `"..."` com suporte a múltiplos caracteres;
-    - Números inteiros e fracionários (`123`, `45.67`).
+- `Lox.java` — *entrypoint* do interpretador, shell (arquivo e REPL) + tratamento de erros léxicos/sintáticos.
+- `Scanner.java` — analisador léxico.
+- `Token.java` — representação de token.
+- `TokenType.java` — enumeração dos tipos de token.
 
-- **4.7 — Reserved Words and Identifiers**  
-  - Identificadores: letra/underscore seguido de letras, dígitos ou underscore.  
-  - Mapeamento de palavras-reservadas para `TokenType` específico:  
-    `and, class, else, false, for, fun, if, nil, or, print, return, super, this, true, var, while`.  
-  - Demais sequências alfanuméricas são tratadas como identificadores (`IDENTIFIER`).
+### Unidade 3 — Statements and State, Control Flow (caps. 8–9)
 
-> Esta etapa corresponde ao **analisador léxico (scanner)** integrado ao restante do interpretador.
+Extensão do interpretador para:
 
----
+- **AST (Árvore de Sintaxe Abstrata)**:
+  - `Expr.java` — expressões:
+    - literais, unários, binários, agrupamento, variáveis, atribuição.
+  - `Stmt.java` — declarações:
+    - `print`, `var`, `block` (`{ ... }`), `if`/`else`, expressão.
 
-### Capítulo 5 — Representing Code (AST)
+- **Parser recursivo descendente (`Parser.java`)**:
+  - Mantém suporte às expressões da unidade anterior.
+  - Adiciona:
+    - Declarações `var` e `print`.
+    - Blocos `{ ... }` com múltiplas declarações.
+    - Condicionais `if` / `else`.
+    - Atribuição `=` com verificação de alvo válido.
 
-- **5.1 — Context-Free Grammars**  
-  - Uso da gramática de expressões de Lox como base para a AST e para o parser.
+- **Ambiente de execução (`Environment.java`)**:
+  - Tabela de símbolos em tempo de execução.
+  - Suporte a escopos aninhados (blocos).
 
-- **5.2 — Implementing Syntax Trees**  
-  - Implementação da **Abstract Syntax Tree (AST)** para expressões em `Expr.java`, com as variantes:
-    - `Expr.Binary`
-    - `Expr.Grouping`
-    - `Expr.Literal`
-    - `Expr.Unary`
-
-- **5.2.2 — Metaprogramming the Trees**  
-  - Ferramenta `tool/GenerateAst.java` para gerar automaticamente as classes de `Expr` com o padrão Visitor.
-
-- **5.3 — Working with Trees**  
-  - Implementação do padrão **Visitor** na AST:
-    - Interface `Expr.Visitor<R>` com métodos `visitBinaryExpr`, `visitGroupingExpr`, `visitLiteralExpr`, `visitUnaryExpr`.
-    - Método `accept(Visitor<R> visitor)` em cada classe concreta.
-
-- **5.4 — A (Not Very) Pretty Printer**  
-  - Implementação de `AstPrinter` para visualização da AST em formato estilo Lisp:
-    - Ex.: expressão `1 + 2 * 3` gera algo como `(+ 1 (* 2 3))`.
+- **Interpreter (`Interpreter.java`)**:
+  - Avaliação de expressões.
+  - Execução de:
+    - `print` (saída padrão),
+    - `var` (declaração e inicialização),
+    - `block` (novo escopo léxico),
+    - `if` / `else` (controle de fluxo),
+    - atribuição de variáveis.
+  - Tratamento de **erros em tempo de execução** com `RuntimeError.java`.
 
 ---
 
-### Capítulo 6 — Parsing Expressions
-
-Baseado em **“Parsing Expressions”** (Crafting Interpreters).
-
-- Implementação da classe `Parser` com um **parser recursivo descendente**, seguindo a gramática:
-
-  ```text
-  expression  → equality ;
-  equality    → comparison ( ( "!=" | "==" ) comparison )* ;
-  comparison  → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-  term        → factor ( ( "-" | "+" ) factor )* ;
-  factor      → unary ( ( "/" | "*" ) unary )* ;
-  unary       → ( "!" | "-" ) unary | primary ;
-  primary     → NUMBER | STRING | "true" | "false" | "nil"
-              | "(" expression ")" ;
-  ```
-
-- Métodos principais implementados em `Parser.java`:
-  - `Expr parse()`
-  - `expression()`, `equality()`, `comparison()`, `term()`, `factor()`, `unary()`, `primary()`
-
-- **Suporte a:**
-  - Literais: números, strings, `true`, `false`, `nil`;
-  - Agrupamentos: `(` _expression_ `)`;
-  - Operadores unários: `!` e `-`;
-  - Operadores binários:
-    - Aritméticos: `+`, `-`, `*`, `/`;
-    - Comparações: `<`, `<=`, `>`, `>=`;
-    - Igualdade: `==`, `!=`.
-
-- **Precedência e associatividade:**
-  - A cadeia de chamadas (`expression → equality → comparison → term → factor → unary → primary`) garante:
-    - `*` e `/` com maior precedência que `+` e `-`;
-    - Comparações e igualdade em níveis mais altos da árvore;
-    - Associatividade **à esquerda** para operadores binários.
-
-- **Tratamento de erros sintáticos:**
-  - Classe interna `ParseError` em `Parser`;
-  - Uso de `Lox.error(token, message)` para reportar erros;
-  - Método `synchronize()` esqueleto para recuperação de erros (será utilizado quando forem adicionados statements).
-
----
-
-### Capítulo 7 — Evaluating Expressions (Interpretador de Expressões)
-
-Baseado em **“Evaluating Expressions”** (Crafting Interpreters).
-
-- Implementação da classe `Interpreter` que implementa `Expr.Visitor<Object>`:
-  - `visitLiteralExpr(Expr.Literal expr)`
-  - `visitGroupingExpr(Expr.Grouping expr)`
-  - `visitUnaryExpr(Expr.Unary expr)`
-  - `visitBinaryExpr(Expr.Binary expr)`
-
-- Método central de avaliação:
-
-  ```java
-  private Object evaluate(Expr expr) {
-      return expr.accept(this);
-  }
-  ```
-
-- **Suporte de avaliação para:**
-  - **Literais:** `1`, `"texto"`, `true`, `false`, `nil`;
-  - **Agrupamentos:** `(1 + 2) * 3` → respeitando o valor interno;
-  - **Operações unárias:**
-    - `-5` (negação numérica);
-    - `!false`, `!true`, `!nil` (semântica de verdade de Lox);
-  - **Operações binárias:**
-    - Aritméticas: `+`, `-`, `*`, `/` entre números (`Double`);
-    - Comparações: `<`, `<=`, `>`, `>=` entre números;
-    - Igualdade: `==`, `!=` entre quaisquer valores;
-    - Concatenação de strings: `"ab" + "cd"` → `"abcd"`.
-
-- **Semântica booleana (“truthiness”):**
-  - `nil` é considerado `false`;
-  - `false` é `false`;
-  - Todo o resto é `true`.
-
-- **Tratamento de erros em tempo de execução:**
-  - Classe `RuntimeError` com referência ao `Token` que causou o erro;
-  - Método `Lox.runtimeError(RuntimeError error)` para imprimir a mensagem e a linha;
-  - Marcação de `Lox.hadRuntimeError` para sinalizar falhas durante a avaliação.
-
-- **Integração no `Lox.run(...)`:**
-  - Pipeline completo:
-    ```text
-    fonte → Scanner → tokens → Parser → AST (Expr) → Interpreter → valor impresso
-    ```
-  - O REPL e a execução de arquivos avaliam de fato as expressões, em vez de apenas imprimir a AST.
-
----
-
-## 📁 Estrutura do projeto
+## 📁 Estrutura do Projeto
 
 ```text
 P2-Compiladores-Analise-Lexica/
-├─ src/
-│  ├─ main/
-│  │  ├─ java/
-│  │  │  └─ lox/
-│  │  │     ├─ Lox.java          // ponto de entrada (REPL / arquivo)
-│  │  │     ├─ Scanner.java      // analisador léxico
-│  │  │     ├─ Token.java
-│  │  │     ├─ TokenType.java
-│  │  │     ├─ Expr.java         // AST de expressões + Visitor
-│  │  │     ├─ AstPrinter.java   // impressor de AST (debug)
-│  │  │     ├─ Parser.java       // parser recursivo descendente
-│  │  │     ├─ Interpreter.java  // avaliador das expressões
-│  │  │     ├─ RuntimeError.java // erro em tempo de execução
-│  │  │     └─ tool/
-│  │  │        └─ GenerateAst.java
-│  │  └─ resources/
-│  └─ test/
-│     ├─ java/
-│     └─ resources/
-├─ pom.xml
+├─ README.md
 ├─ .gitignore
 ├─ LICENSE
-└─ README.md
+├─ examples/
+│  ├─ 01_print_var.lox
+│  ├─ 02_blocks.lox
+│  ├─ 03_if.lox
+│  └─ 04_assign.lox
+└─ src/
+   └─ main/
+      └─ java/
+         └─ lox/
+            ├─ Lox.java
+            ├─ Scanner.java
+            ├─ Token.java
+            ├─ TokenType.java
+            ├─ Expr.java
+            ├─ Stmt.java
+            ├─ Parser.java
+            ├─ Interpreter.java
+            ├─ Environment.java
+            └─ RuntimeError.java
+```
+
+> Obs.: a estrutura pode conter branches específicos (por exemplo, `develop`, `feature/expression-interpreter`, `feature/statements-and-control-flow`) de acordo com o fluxo Git adotado na disciplina.
+
+---
+
+## 🧰 Requisitos
+
+- **Java JDK 17+** instalado e configurado no `PATH`.
+
+Verifique:
+
+```bash
+java -version
+javac -version
 ```
 
 ---
 
-## ⚙️ Pré-requisitos
+## 🔧 Compilação e Execução
 
-Antes de compilar e executar o projeto, certifique-se de ter instalado:
+### 1. Compilar (PowerShell — Windows)
 
-- **Java JDK 17+** (testado com Java 21)  
-  Verifique:
+No diretório raiz do projeto:
 
-  ```bash
-  java -version
-  javac -version
-  ```
+```powershell
+# Gera lista de arquivos Java (PowerShell não expande *.java diretamente no javac)
+$files = Get-ChildItem -Path src\main\java\lox -Filter *.java | ForEach-Object FullName
+$files | Set-Content sources.txt
 
-- **Apache Maven 3.6+**  
-  Verifique:
-
-  ```bash
-  mvn -version
-  ```
-
-### Instalação (se necessário)
-
-**Linux (Ubuntu/Debian):**
-
-```bash
-sudo apt update
-sudo apt install -y openjdk-21-jdk maven
+mkdir out -Force
+javac -d out @sources.txt
 ```
 
-**macOS (Homebrew):**
+### 2. Executar em modo REPL
 
 ```bash
-brew install openjdk@21 maven
+java -cp out lox.Lox
 ```
 
-**Windows:**
+Exemplos para testar diretamente no prompt:
 
-- Baixar JDK (Oracle ou OpenJDK);
-- Baixar Maven;
-- Configurar variáveis de ambiente `JAVA_HOME` e `MAVEN_HOME`.
+```lox
+// Variável + print
+var msg = "hello lox";
+print msg;
+
+// Blocos e escopo
+var a = "global";
+{
+  var a = 123;
+  print a; // 123
+}
+print a;   // global
+
+// If/else
+if (true) print "ok"; else print "no";
+
+// Atribuição
+var x = 10;
+x = x + 5;
+print x; // 15
+```
+
+### 3. Executar arquivos `.lox`
+
+```bash
+java -cp out lox.Lox examples/01_print_var.lox
+java -cp out lox.Lox examples/02_blocks.lox
+java -cp out lox.Lox examples/03_if.lox
+java -cp out lox.Lox examples/04_assign.lox
+``` 
 
 ---
 
-## ▶️ Compilação e Execução
+## 🔗 Referências
 
-Na raiz do projeto:
-
-```bash
-mvn clean package
-mvn clean install
-```
-
-### Opção 1 — Executar via Maven (REPL interativo)
-
-```bash
-mvn exec:java -Dexec.mainClass="lox.Lox"
-```
-
-### Opção 2 — Executar o JAR diretamente (REPL interativo)
-
-```bash
-java -cp target/p2-compiladores-analise-lexica-1.0-SNAPSHOT.jar lox.Lox
-```
-
-### Opção 3 — Executar um arquivo Lox
-
-```bash
-java -cp target/p2-compiladores-analise-lexica-1.0-SNAPSHOT.jar lox.Lox programa.lox
-```
-
-> Alternativamente, sem Maven, é possível compilar com:
->
-> ```bash
-> javac -d out src/main/java/lox/*.java
-> java -cp out lox.Lox
-> ```
-
----
-
-## 🧪 Testes rápidos
-
-### Tokens (scanner)
-
-```lox
-(){}.,-+;*!=====<===>
-```
-
-Comentários, strings e números:
-
-```lox
-// grouping
-(( )){} // comment
-"lox" 123 45.67
-!= == <= >= /
-```
-
-Identificadores e palavras-reservadas:
-
-```lox
-var language = "Lox";
-print language;
-if (true) print "ok";
-while (false) print 0;
-orchid or
-```
-
-### Expressões (parser + interpretador)
-
-No REPL:
-
-```lox
-> 123;
-123
-
-> "ab" + "cd";
-abcd
-
-> -5;
--5
-
-> !false;
-true
-
-> (1 + 2) * 3;
-9
-
-> 1 + 2 * 3;
-7
-
-> 1 < 2 == true;
-true
-```
+- Robert Nystrom — [_Crafting Interpreters_](https://craftinginterpreters.com/)
+  - Capítulo 4: **Scanning**
+  - Capítulo 8: **Statements and State**
+  - Capítulo 9: **Control Flow**
 
 ---
 
 ## 📄 Licença
 
-Este projeto é licenciado sob a **MIT License**. Consulte o arquivo `LICENSE`.
-
----
-
-## 📚 Referência
-
-- Robert Nystrom — **Crafting Interpreters**  
-  - Capítulo 4: Scanning  
-  - Capítulo 5: Representing Code  
-  - Capítulo 6: Parsing Expressions  
-  - Capítulo 7: Evaluating Expressions
+Este projeto é distribuído sob a licença [MIT](LICENSE).
