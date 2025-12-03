@@ -1,53 +1,105 @@
 package lox;
 
-class Interpreter implements Expr.Visitor<Object> {
+import java.util.List;
 
-  void interpret(Expr expression) {
+class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+
+  private Environment environment = new Environment(); // escopo global
+
+  void interpret(List<Stmt> statements) {
     try {
-      Object value = evaluate(expression);
-      System.out.println(stringify(value));
+      for (Stmt statement : statements) {
+        execute(statement);
+      }
     } catch (RuntimeError error) {
       Lox.runtimeError(error);
     }
   }
 
-  // Avalia uma expressão da AST
-  private Object evaluate(Expr expr) {
-    return expr.accept(this);
+  private void execute(Stmt stmt) {
+    stmt.accept(this);
   }
 
-  // ------------ VISITORS ------------
+  void executeBlock(List<Stmt> statements, Environment environment) {
+    Environment previous = this.environment;
+    try {
+      this.environment = environment;
+      for (Stmt stmt : statements) {
+        execute(stmt);
+      }
+    } finally {
+      this.environment = previous;
+    }
+  }
 
-  // Literais: 1, "texto", true, false, nil
+  // ===== Stmt.Visitor =====
+
+  @Override
+  public Void visitExpressionStmt(Stmt.Expression stmt) {
+    evaluate(stmt.expression);
+    return null;
+  }
+
+  @Override
+  public Void visitPrintStmt(Stmt.Print stmt) {
+    Object value = evaluate(stmt.expression);
+    System.out.println(stringify(value));
+    return null;
+  }
+
+  @Override
+  public Void visitVarStmt(Stmt.Var stmt) {
+    Object value = null;
+    if (stmt.initializer != null) {
+      value = evaluate(stmt.initializer);
+    }
+    environment.define(stmt.name.lexeme, value);
+    return null;
+  }
+
+  @Override
+  public Void visitBlockStmt(Stmt.Block stmt) {
+    executeBlock(stmt.statements, new Environment(environment));
+    return null;
+  }
+
+  @Override
+  public Void visitIfStmt(Stmt.If stmt) {
+    if (isTruthy(evaluate(stmt.condition))) {
+      execute(stmt.thenBranch);
+    } else if (stmt.elseBranch != null) {
+      execute(stmt.elseBranch);
+    }
+    return null;
+  }
+
+  // ===== Expr.Visitor =====
+
   @Override
   public Object visitLiteralExpr(Expr.Literal expr) {
     return expr.value;
   }
 
-  // Agrupamentos: (expr)
   @Override
   public Object visitGroupingExpr(Expr.Grouping expr) {
     return evaluate(expr.expression);
   }
 
-  // Unários: -expr, !expr
   @Override
   public Object visitUnaryExpr(Expr.Unary expr) {
     Object right = evaluate(expr.right);
 
     switch (expr.operator.type) {
-      case MINUS:
-        checkNumberOperand(expr.operator, right);
-        return -(double) right;
       case BANG:
         return !isTruthy(right);
+      case MINUS:
+        checkNumberOperand(expr.operator, right);
+        return - (double) right;
+      default:
+        throw new IllegalStateException("Unexpected unary operator: " + expr.operator.type);
     }
-
-    // Não deve ser alcançado na gramática atual
-    return null;
   }
 
-  // Binários: +, -, *, /, comparações, igualdade
   @Override
   public Object visitBinaryExpr(Expr.Binary expr) {
     Object left = evaluate(expr.left);
@@ -67,43 +119,54 @@ class Interpreter implements Expr.Visitor<Object> {
         checkNumberOperands(expr.operator, left, right);
         return (double) left <= (double) right;
 
+      case BANG_EQUAL:
+        return !isEqual(left, right);
+      case EQUAL_EQUAL:
+        return isEqual(left, right);
+
       case MINUS:
         checkNumberOperands(expr.operator, left, right);
         return (double) left - (double) right;
+      case PLUS:
+        if (left instanceof Double && right instanceof Double) {
+          return (double) left + (double) right;
+        }
+        if (left instanceof String && right instanceof String) {
+          return (String) left + (String) right;
+        }
+        throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
       case SLASH:
         checkNumberOperands(expr.operator, left, right);
         return (double) left / (double) right;
       case STAR:
         checkNumberOperands(expr.operator, left, right);
         return (double) left * (double) right;
-
-      case PLUS:
-        // Soma numérica
-        if (left instanceof Double && right instanceof Double) {
-          return (double) left + (double) right;
-        }
-        // Concatenação de strings
-        if (left instanceof String && right instanceof String) {
-          return (String) left + (String) right;
-        }
-        throw new RuntimeError(expr.operator,
-            "Operands must be two numbers or two strings.");
-
-      case BANG_EQUAL:
-        return !isEqual(left, right);
-      case EQUAL_EQUAL:
-        return isEqual(left, right);
     }
 
-    // Não deve ser alcançado na gramática atual
     return null;
   }
 
-  // ------------ HELPERS SEMÂNTICOS ------------
+  @Override
+  public Object visitVariableExpr(Expr.Variable expr) {
+    return environment.get(expr.name);
+  }
 
-  private boolean isTruthy(Object object) {
-    if (object == null) return false;
-    if (object instanceof Boolean) return (boolean) object;
+  @Override
+  public Object visitAssignExpr(Expr.Assign expr) {
+    Object value = evaluate(expr.value);
+    environment.assign(expr.name, value);
+    return value;
+  }
+
+  // ===== helpers =====
+
+  private Object evaluate(Expr expr) {
+    return expr.accept(this);
+  }
+
+  private boolean isTruthy(Object value) {
+    if (value == null) return false;
+    if (value instanceof Boolean) return (Boolean) value;
     return true;
   }
 
@@ -128,7 +191,6 @@ class Interpreter implements Expr.Visitor<Object> {
 
     if (object instanceof Double) {
       String text = object.toString();
-      // Remove ".0" para inteiros
       if (text.endsWith(".0")) {
         text = text.substring(0, text.length() - 2);
       }
