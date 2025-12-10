@@ -50,6 +50,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
   }
 
+  // ===== Stmt.Visitor =====
+
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
     evaluate(stmt.expression);
@@ -61,6 +63,14 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     Object value = evaluate(stmt.expression);
     System.out.println(stringify(value));
     return null;
+  }
+
+  @Override
+  public Void visitReturnStmt(Stmt.Return stmt) {
+    Object value = null;
+    if (stmt.value != null) value = evaluate(stmt.value);
+
+    throw new Return(value);
   }
 
   @Override
@@ -95,6 +105,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     environment.define(stmt.name.lexeme, function);
     return null;
   }
+
+  // ===== Expr.Visitor =====
 
   @Override
   public Object visitLiteralExpr(Expr.Literal expr) {
@@ -203,6 +215,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return function.call(this, arguments);
   }
 
+  // ===== helpers =====
+
   private Object evaluate(Expr expr) {
     return expr.accept(this);
   }
@@ -243,4 +257,3 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return object.toString();
   }
 }
-
