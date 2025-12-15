@@ -21,9 +21,10 @@ class Parser {
     return statements;
   }
 
-  // declaration → funDecl | varDecl | statement ;
+  // declaration → classDecl | funDecl | varDecl | statement ;
   private Stmt declaration() {
     try {
+      if (match(TokenType.CLASS)) return classDeclaration();
       if (match(TokenType.FUN)) return function("function");
       if (match(TokenType.VAR)) return varDeclaration();
       return statement();
@@ -31,6 +32,21 @@ class Parser {
       synchronize();
       return null;
     }
+  }
+
+  // classDecl → "class" IDENTIFIER "{" function* "}" ;
+  private Stmt classDeclaration() {
+    Token name = consume(TokenType.IDENTIFIER, "Expect class name.");
+    consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+
+    List<Stmt.Function> methods = new ArrayList<>();
+    while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+      methods.add(function("method"));
+    }
+
+    consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+
+    return new Stmt.Class(name, methods);
   }
 
   // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
@@ -129,7 +145,7 @@ class Parser {
     return assignment();
   }
 
-  // assignment → IDENTIFIER "=" assignment | equality ;
+  // assignment → ( call "." )? IDENTIFIER "=" assignment | equality ;
   private Expr assignment() {
     Expr expr = equality();
 
@@ -139,6 +155,8 @@ class Parser {
 
       if (expr instanceof Expr.Variable v) {
         return new Expr.Assign(v.name, value);
+      } else if (expr instanceof Expr.Get get) {
+        return new Expr.Set(get.object, get.name, value);
       }
 
       error(equals, "Invalid assignment target.");
@@ -217,6 +235,10 @@ class Parser {
     while (true) {
       if (match(TokenType.LEFT_PAREN)) {
         expr = finishCall(expr);
+      } else if (match(TokenType.DOT)) {
+        Token name = consume(TokenType.IDENTIFIER,
+            "Expect property name after '.'.");
+        expr = new Expr.Get(expr, name);
       } else {
         break;
       }
@@ -242,7 +264,8 @@ class Parser {
     return new Expr.Call(callee, paren, arguments);
   }
 
-  // primary → NUMBER | STRING | "true" | "false" | "nil" | IDENTIFIER | "(" expression ")" ;
+  // primary → NUMBER | STRING | "true" | "false" | "nil" | "this"
+  //         | IDENTIFIER | "(" expression ")" ;
   private Expr primary() {
     if (match(TokenType.FALSE)) return new Expr.Literal(false);
     if (match(TokenType.TRUE))  return new Expr.Literal(true);
@@ -251,6 +274,8 @@ class Parser {
     if (match(TokenType.NUMBER, TokenType.STRING)) {
       return new Expr.Literal(previous().literal);
     }
+
+    if (match(TokenType.THIS)) return new Expr.This(previous());
 
     if (match(TokenType.IDENTIFIER)) {
       return new Expr.Variable(previous());
