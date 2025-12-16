@@ -1,4 +1,4 @@
-# Lox — Análise Léxica, Expressões e Controle de Fluxo (jlox)
+# Lox — Análise Léxica, Expressões, Controle de Fluxo, Funções e Classes (jlox)
 
 Interpretador da linguagem **Lox** implementado em **Java**, seguindo o livro _Crafting Interpreters_ (Robert Nystrom).
 
@@ -6,6 +6,7 @@ Este repositório reúne as entregas das unidades de **Compiladores**:
 
 - **Unidade 2**: Análise Léxica — capítulo 4 (_Scanning_), até a seção **4.7 – Reserved Words and Identifiers**.
 - **Unidade 3**: _Statements and State_ (capítulo 8) e _Control Flow_ (capítulo 9) — suporte a declarações, variáveis e fluxo de controle.
+- **Unidade 4**: _Functions_ (cap. 10), _Resolving and Binding_ (cap. 11) e _Classes_ (cap. 12) — suporte a funções de primeira classe, resolução estática de variáveis e programação orientada a objetos com classes.
 
 ---
 
@@ -64,8 +65,60 @@ Extensão do interpretador para:
     - `var` (declaração e inicialização),
     - `block` (novo escopo léxico),
     - `if` / `else` (controle de fluxo),
-    - atribuição de variáveis.
+    - atribuição de variáveis,
+    - **funções** (`fun`, chamada, retorno),
+    - **classes, métodos, propriedades e inicializadores** (`class`, `this`, `init`).
   - Tratamento de **erros em tempo de execução** com `RuntimeError.java`.
+
+### Unidade 4 — Functions, Resolving and Binding, Classes (caps. 10–12)
+
+- **Funções e chamadas (`fun` / `return`)**:
+  - Definição de funções nomeadas:
+    ```lox
+    fun add(a, b) {
+      return a + b;
+    }
+    print add(2, 3); // 5
+    ```
+  - Funções como valores de primeira classe (armazenadas em variáveis e campos).
+  - Retorno antecipado com `return`.
+
+- **Resolução de variáveis e escopo léxico**:
+  - `Resolver.java` faz uma passagem estática para determinar em qual escopo cada variável é resolvida.
+  - O `Interpreter` usa um mapa de profundidades (`locals`) em conjunto com `Environment.getAt()` e `assignAt()` para buscar/atribuir variáveis no escopo correto.
+  - Isso garante que capturas de variáveis por funções (closures) funcionem corretamente.
+
+- **Funções como objetos chamáveis**:
+  - `LoxCallable.java` define a interface para qualquer coisa invocável em Lox (`call()` e `arity()`).
+  - `LoxFunction.java` implementa `LoxCallable` para representar funções definidas pelo usuário, incluindo:
+    - fechamento léxico (`Environment closure`),
+    - suporte a `return` via exceção interna `Return`,
+    - suporte especial para inicializadores de classe (`isInitializer`).
+
+- **Classes, instâncias e métodos (cap. 12)**:
+  - Sintaxe de declaração de classes:
+    ```lox
+    class Person {
+      init(name) {
+        this.name = name;
+      }
+
+      sayName() {
+        print this.name;
+      }
+    }
+    ```
+  - `LoxClass.java` representa classes em tempo de execução e implementa `LoxCallable`:
+    - Chamar uma classe (`Person("Jane")`) cria uma nova instância (`LoxInstance`).
+    - Se existir um método `init`, ele é chamado como inicializador.
+  - `LoxInstance.java` representa instâncias, com:
+    - mapa de campos (`fields`) para propriedades dinâmicas,
+    - acesso a métodos da classe via `klass.findMethod(...)` e ligação de `this` (`bind`).
+  - Suporte a:
+    - acesso a propriedades: `obj.field`,
+    - escrita de propriedades: `obj.field = valor`,
+    - chamada de métodos: `obj.method(args)`,
+    - uso de `this` dentro de métodos para acessar o objeto atual.
 
 ---
 
@@ -94,7 +147,13 @@ P2-Compiladores-Analise-Lexica/
             ├─ Parser.java
             ├─ Interpreter.java
             ├─ Environment.java
-            └─ RuntimeError.java
+            ├─ RuntimeError.java
+            ├─ LoxCallable.java
+            ├─ LoxFunction.java
+            ├─ Resolver.java
+            ├─ Return.java
+            ├─ LoxClass.java
+            └─ LoxInstance.java
 ```
 
 > Obs.: a estrutura pode conter branches específicos (por exemplo, `develop`, `feature/expression-interpreter`, `feature/statements-and-control-flow`) de acordo com o fluxo Git adotado na disciplina.
@@ -166,6 +225,46 @@ java -cp out lox.Lox examples/01_print_var.lox
 java -cp out lox.Lox examples/02_blocks.lox
 java -cp out lox.Lox examples/03_if.lox
 java -cp out lox.Lox examples/04_assign.lox
+```
+
+Exemplos adicionais envolvendo **funções** e **classes** (pode criar na pasta `examples/`):
+
+```lox
+// 05_functions.lox
+fun greet(name) {
+  print "Hello, " + name + "!";
+}
+
+greet("Lox");
+
+fun makeCounter() {
+  var count = 0;
+  fun inc() {
+    count = count + 1;
+    print count;
+  }
+  return inc;
+}
+
+var c = makeCounter();
+c(); // 1
+c(); // 2
+```
+
+```lox
+// 06_classes.lox
+class Person {
+  init(name) {
+    this.name = name;
+  }
+
+  sayName() {
+    print this.name;
+  }
+}
+
+var jane = Person("Jane");
+jane.sayName(); // Jane
 ``` 
 
 ---
@@ -176,6 +275,9 @@ java -cp out lox.Lox examples/04_assign.lox
   - Capítulo 4: **Scanning**
   - Capítulo 8: **Statements and State**
   - Capítulo 9: **Control Flow**
+  - Capítulo 10: **Functions**
+  - Capítulo 11: **Resolving and Binding**
+  - Capítulo 12: **Classes** (incluindo *Design Note: Prototypes and Power*)
 
 ---
 
